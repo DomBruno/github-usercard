@@ -24,7 +24,12 @@
           user, and adding that card to the DOM.
 */
 
-const followersArray = [];
+const followersArray = ['tetondan',
+'dustinmyers',
+'justsml',
+'luishrd',
+'bigknell'];
+
 
 /* Step 3: Create a function that accepts a single object as its only argument,
           Using DOM methods and properties, create a component that will return the following DOM element:
@@ -53,3 +58,92 @@ const followersArray = [];
   luishrd
   bigknell
 */
+
+
+// API Call
+
+  // Pull Self Info
+  axios.get('https://api.github.com/users/DomBruno')
+  .then(data => {
+    console.log('Success!', data);
+    const cards = document.querySelector('.cards');
+    cards.appendChild(createCard(data.data));
+ 
+  })
+  .catch(err => {
+    console.log('Error: ', err);
+  })
+
+    // Pull Follower Info & push to Array
+    axios.get(`https://api.github.com/users/DomBruno/followers`)
+    .then(data => {
+      console.log('Works! Here is the list of your followers: ', data.data);
+      const followersData = data.data;
+      followersData.forEach(followerData => {
+        followersArray.push(followerData.login);
+      })
+     
+  
+      followersArray.forEach(follower => {
+        axios.get(`https://api.github.com/users/${follower}`)
+          .then(data => {
+            console.log('Follower info: ', data.data);
+            const cards2 = document.querySelector('.cards');
+            cards2.appendChild(createCard(data.data));
+          })
+          .catch(err => {
+            console.log('Could not retrieve follower info: ', err);
+          })
+      })
+  
+    })
+  
+    .catch(err => {
+      console.log('There was a problem retrieving your list of followers: ', err);
+    })
+
+  // Card Component
+function createCard(data) {
+  //Create DOM Template
+  const userCard = document.createElement('div');
+  const userImg = document.createElement('img');
+  const userInfo = document.createElement('div');
+  const userName = document.createElement('h3');
+  const displayName = document.createElement('p');
+  const userLocation = document.createElement('p');
+  const profile = document.createElement('p');
+  const userProfile = document.createElement('a');
+  const userFollowers = document.createElement('p');
+  const userFollowing = document.createElement('p');
+  const userBio = document.createElement('p');
+
+  // Assign Classes to Template
+  userCard.classList.add('card');
+  userInfo.classList.add('card-info');
+  userName.classList.add('name');
+  displayName.classList.add('username');
+  
+  // Assign Values
+  userImg.src = data.avatar_url;
+  userName.textContent = data.name;
+  displayName.textContent = data.login;
+  userLocation.textContent = `Location: ${data.location}`;
+  userProfile.innerHTML = `Profile: <a href=${data.html_url}>${data.html_url}</a>`;
+  userFollowers.textContent = `Followers: ${data.followers}`;
+  userFollowing.textContent = `Following: ${data.following}`;
+  userBio.textContent = `Bio: ${data.bio}`;
+  
+  // Assemble Card
+  userCard.appendChild(userImg);
+  userCard.appendChild(userInfo);
+  userInfo.appendChild(userName);
+  userInfo.appendChild(displayName);
+  userInfo.appendChild(userLocation);
+  userInfo.appendChild(profile);
+  profile.appendChild(userProfile);
+  userInfo.appendChild(userFollowers);
+  userInfo.appendChild(userFollowing);
+  userInfo.appendChild(userBio);
+
+  return userCard;
+}
